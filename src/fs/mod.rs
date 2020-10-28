@@ -19,6 +19,7 @@ pub fn get_date_fom_timestamp(timestamp: u64) -> DateTime<Local> {
     let converted: DateTime<Local> = DateTime::from(utc);
     return converted;
 }
+
 pub fn get_timestamp(f_time: SystemTime) -> u64 {
     return f_time.duration_since(UNIX_EPOCH).unwrap().as_secs();
 }
@@ -101,7 +102,6 @@ impl FileInfo {
 }
 
 pub fn get_file_info(file_path: &str) {
-    // use std::fs;
     let metadata = std::fs::metadata(file_path).unwrap();
     println!("{:?}", metadata);
     println!("Modified: {:?}", get_date(metadata.modified().unwrap()));

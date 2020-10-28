@@ -1,7 +1,13 @@
 // use walkdir::WalkDir;
+
+
 mod fs;
+mod shell;
 
 use std::any::type_name;
+
+#[macro_use]
+extern crate fstrings;
 
 fn type_of<T>(_: T) -> &'static str {
     type_name::<T>()
@@ -52,46 +58,54 @@ fn type_of<T>(_: T) -> &'static str {
 // }
 
 
-
-
-
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use chrono::{NaiveDate, NaiveDateTime, Utc, TimeZone, Local, DateTime};
 use human_size::{Size, SpecificSize, Kilobyte, Mebibyte, Gigibyte};
 use crate::fs::{function, get_file_info};
+use crate::shell::{cmd, ffmpeg, StratusTranscoder, TranscoderEngineConfig, StratusTranscoderConfig, FtpLoginConfig};
+
+
+extern crate dotenv;
+
+use dotenv::dotenv;
+use std::env;
+use std::path::Path;
 
 fn main() -> std::io::Result<()> {
-    // use std::fs;
+    // get_file_info(r"\\192.168.196.99\B_Workflow\StratusArchive\VB2017\AFICION\AF CAMPANIA AFA-NS_DF00A06P.gxf.c485ba");
+    cmd();
 
-    get_file_info(r"\\192.168.196.99\B_Workflow\StratusArchive\VB2017\AFICION\AF CAMPANIA AFA-NS_DF00A06P.gxf.c485ba");
-    // let metadata = fs::metadata(r"\\192.168.196.99\B_Workflow\StratusArchive\VB2017\AFICION\AF COMENTARIO ERIKA-FT_DF00A06X.gxf")?;
-    //
-    // println!("{:?}", metadata.file_type());
-    // println!("{:?}", metadata);
-    // let f_created:u64 = metadata.created().unwrap().duration_since(UNIX_EPOCH).unwrap().as_secs();
-    // println!("{:?}", metadata.created().unwrap().duration_since(UNIX_EPOCH).unwrap().as_secs());
-    //
-    // let date_time_after_a_billion_seconds = NaiveDateTime::from_timestamp(f_created as i64, 0);
-    // println!("{}", date_time_after_a_billion_seconds);
-    // println!("{:?}", Utc.timestamp(f_created as i64, 0).to_string());
-    //
-    //
-    // let utc = Utc::now();
-    // let local = Local::now();
-    // let converted: DateTime<Local> = DateTime::from(utc);
-    // let converted2: DateTime<Local> = DateTime::from(Utc.timestamp(f_created as i64, 0));
-    // // println!("{:?}  -- {:?}  ---  {:?}", local, utc, converted);
-    // println!("{:?}", converted2);
-    // let size_f= metadata.len().to_string() + " B";
-    // let size_f:Size = size_f.parse().unwrap();
-    //
-    // println!("{:?}    {:?}",type_of(metadata.len()), metadata.len() );
-    // println!("{:?}", size_f.to_string());
-    // let size_f2= metadata.len().to_string() + " B";
-    // let size_f_kb: SpecificSize<Gigibyte> = size_f2.parse().unwrap();
-    // println!("{:?}", size_f_kb.to_string());
-    //
-    // function();
+    dotenv().ok();
+
+    for (key, value) in env::vars() {
+        println!("{}: {}", key, value);
+    }
+    let ffmpeg_path = env::var("FFMPEG_PATH").unwrap().to_string();
+    let ffmpeg_engine = env::var("FFMPEG_ENGINE").unwrap().to_string();
+    let media_path = env::var("MEDIA_PAT").unwrap().to_string();
+    let media = Path::new(&media_path).join("PADRES CANCER INE_1.flac").to_str().unwrap().to_string();
+    // println!("FFMPEG: {:?}", ffmpeg_path.unwrap());
+    // let fpath = ffmpeg_path.unwrap().to_string();
+    // ffmpeg(&fpath, &media_path);
+    let dsplited: Vec<&str> = "ffmpeg -y -i pepa.mp4".split(' ').collect();
+
+    println!("{:?}", dsplited);
+
+    let engine_conf = TranscoderEngineConfig {
+        path: ffmpeg_path,
+        engine: ffmpeg_engine,
+    };
+
+    let stratus_conf = StratusTranscoderConfig {
+        ftp_host: "192.168.196.139".to_string(),
+        gxf: FtpLoginConfig { user: "movie".to_string(), pass: "".to_string() },
+        mxf: FtpLoginConfig { user: "mxfmovie".to_string(), pass: "".to_string() },
+        danger: FtpLoginConfig { user: "GVAdmin".to_string(), pass: "AdminGV!".to_string() },
+    };
+
+    let transcoder = StratusTranscoder::new(engine_conf, stratus_conf, "TEST".to_string(), media);
+
+    transcoder.transcode();
 
     Ok(())
 }
