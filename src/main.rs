@@ -3,6 +3,8 @@
 
 mod fs;
 mod shell;
+mod exearg;
+mod ftp;
 
 use std::any::type_name;
 
@@ -71,25 +73,30 @@ use dotenv::dotenv;
 use std::env;
 use std::path::Path;
 
+
+fn show_env_vars(){
+    for (key, value) in env::vars() {
+        println!("{}: {}", key, value);
+    }
+}
+
 fn main() -> std::io::Result<()> {
     // get_file_info(r"\\192.168.196.99\B_Workflow\StratusArchive\VB2017\AFICION\AF CAMPANIA AFA-NS_DF00A06P.gxf.c485ba");
     cmd();
 
     dotenv().ok();
 
-    for (key, value) in env::vars() {
-        println!("{}: {}", key, value);
-    }
+
     let ffmpeg_path = env::var("FFMPEG_PATH").unwrap().to_string();
     let ffmpeg_engine = env::var("FFMPEG_ENGINE").unwrap().to_string();
     let media_path = env::var("MEDIA_PAT").unwrap().to_string();
-    let media = Path::new(&media_path).join("PADRES CANCER INE_1.flac").to_str().unwrap().to_string();
+    let media = Path::new(&media_path).join("11 BITE OKOKOKOK XALAPA 22H.mxf").to_str().unwrap().to_string();
     // println!("FFMPEG: {:?}", ffmpeg_path.unwrap());
     // let fpath = ffmpeg_path.unwrap().to_string();
     // ffmpeg(&fpath, &media_path);
-    let dsplited: Vec<&str> = "ffmpeg -y -i pepa.mp4".split(' ').collect();
+    // let dsplited: Vec<&str> = "ffmpeg -y -i pepa.mp4".split(' ').collect();
 
-    println!("{:?}", dsplited);
+    // println!("{:?}", dsplited);
 
     let engine_conf = TranscoderEngineConfig {
         path: ffmpeg_path,
@@ -103,9 +110,22 @@ fn main() -> std::io::Result<()> {
         danger: FtpLoginConfig { user: "GVAdmin".to_string(), pass: "AdminGV!".to_string() },
     };
 
-    let transcoder = StratusTranscoder::new(engine_conf, stratus_conf, "TEST".to_string(), media);
+    // let mut transcoder = StratusTranscoder::new(engine_conf, stratus_conf, "TEST".to_string(), media);
+    // let was_transcoded = transcoder.transcode();
+    // println!("Transcoded: {:?}  == {:?}", was_transcoded, transcoder.status);
+    //
+    // let the_args = exearg::get_args();
+    // println!("{:?}", the_args);
+    // match the_args {
+    //     Some(x) => println!("Result: {:?}", x),
+    //     None => println!("NADA QUE TRANSCODIFICAR.")
+    // }
 
-    transcoder.transcode();
+    ftp::ftp_test();
+
+    // let mut buffer = String::new();
+    // println!("Press any key to exit...");
+    // std::io::stdin().read_line(&mut buffer).expect("Failed");
 
     Ok(())
 }
